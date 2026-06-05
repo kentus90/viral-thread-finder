@@ -14,18 +14,25 @@ export default async function handler(req, res) {
 
     const sourcesStr = (sources && sources.length > 0) ? sources.join(', ') : 'tutte le piattaforme';
 
-    const systemPrompt = `Sei un esperto di social media. Rispondi SEMPRE e SOLO con JSON valido puro. Zero testo aggiuntivo. Zero backtick. Solo il JSON.`;
+    const systemPrompt = `Sei un ricercatore di tendenze virali. Cerchi discussioni REALI sul web usando web_search. Includi solo thread che hai effettivamente trovato nelle ricerche, con URL veri. Non inventare mai dati o numeri. Rispondi SOLO con JSON valido puro, zero testo, zero backtick.`;
 
-    const userPrompt = `Trova i thread piu virali su: "${topic}". Fonti: ${sourcesStr}.
+    const userPrompt = `Cerca discussioni e thread reali e popolari su: "${topic}". Fonti: ${sourcesStr}.
 
-Rispondi SOLO con questo JSON, nient altro:
-{"threads":[{"title":"titolo","source":"reddit","url":"https://...","summary":"perche e virale","upvotes":1000,"comments":500,"shares":null,"views":null,"date":"giugno 2026","viral_score":9}]}
+ISTRUZIONI:
+- Usa web_search per trovare discussioni REALI con URL verificabili
+- Includi SOLO thread che trovi davvero nelle ricerche, mai inventati
+- Per i numeri (upvotes, comments, views): inserisci il valore solo se lo trovi nella fonte, altrimenti null
+- Includi quanti thread reali riesci a trovare (anche solo 4-5 se sono pochi)
+- Non scrivere MAI testo di rifiuto o spiegazioni: rispondi sempre e solo con il JSON
 
-Trova 8 thread reali. Ordina per viral_score decrescente. Null dove non sai i numeri.`;
+Formato JSON:
+{"threads":[{"title":"titolo reale","source":"reddit","url":"URL reale verificabile","summary":"di cosa parla","upvotes":null,"comments":null,"views":null,"date":"quando","viral_score":7}]}
 
+Ordina per viral_score decrescente. Se non trovi nulla, restituisci {"threads":[]}.`;
+
+    const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
     let messages = [{ role: 'user', content: userPrompt }];
     let fullText = '';
-    let lastData = null;
 
     for (let i = 0; i < 8; i++) {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -39,33 +46,32 @@ Trova 8 thread reali. Ordina per viral_score decrescente. Null dove non sai i nu
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 4000,
           system: systemPrompt,
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+          tools,
           messages
         })
       });
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        return res.status(response.status).json({ error: err.error?.message || `Anthropic HTTP ${response.status}` });
+        return res.status(response.status).json({ error: err.error?.message || `HTTP ${response.status}` });
       }
 
-      lastData = await response.json();
-
-      const textBlocks = lastData.content.filter(b => b.type === 'text');
+      const data = await response.json();
+      const textBlocks = data.content.filter(b => b.type === 'text');
       if (textBlocks.length > 0) fullText = textBlocks.map(b => b.text).join('\n');
 
-      if (lastData.stop_reason === 'end_turn') break;
+      if (data.stop_reason === 'end_turn') break;
 
-      if (lastData.stop_reason === 'tool_use') {
-        const toolUseBlocks = lastData.content.filter(b => b.type === 'tool_use');
+      if (data.stop_reason === 'tool_use') {
+        const toolUseBlocks = data.content.filter(b => b.type === 'tool_use');
         if (!toolUseBlocks.length) break;
-        messages.push({ role: 'assistant', content: lastData.content });
+        messages.push({ role: 'assistant', content: data.content });
         messages.push({
           role: 'user',
           content: toolUseBlocks.map(b => ({
             type: 'tool_result',
             tool_use_id: b.id,
-            content: 'Ricerca completata. Ora genera il JSON richiesto e nient altro.'
+            content: 'Ricerca completata. Ora restituisci SOLO il JSON con i thread reali trovati. Nessun testo di spiegazione o rifiuto, solo il JSON.'
           }))
         });
         continue;
