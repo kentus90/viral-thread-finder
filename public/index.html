@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viral Thread Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: rgba(255,255,255,0.08);
+    --border-bright: rgba(255,255,255,0.18);
+    --accent: #00e5a0;
+    --accent2: #7c3aed;
+    --accent3: #f59e0b;
+    --text: #f0f0f5;
+    --text-muted: #8888a0;
+    --text-dim: #555568;
+    --red: #ff4466;
+    --blue: #4488ff;
+    --orange: #ff8c42;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob1 { position: fixed; top: -200px; left: -200px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+  .blob2 { position: fixed; bottom: -200px; right: -200px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+  .container { max-width: 900px; margin: 0 auto; padding: 60px 24px 80px; position: relative; z-index: 1; }
+  .header { margin-bottom: 56px; text-align: center; }
+  .header-badge { display: inline-flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.2); padding: 6px 14px; border-radius: 100px; margin-bottom: 24px; }
+  .header-badge::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+  h1 { font-family: 'Space Mono', monospace; font-size: clamp(28px, 5vw, 48px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 16px; color: var(--text-muted); font-weight: 300; max-width: 500px; margin: 0 auto; line-height: 1.6; }
+  .search-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; margin-bottom: 32px; }
+  .input-row { display: flex; gap: 12px; margin-bottom: 20px; }
+  .topic-input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--text); outline: none; transition: border-color 0.2s; }
+  .topic-input:focus { border-color: var(--accent); }
+  .topic-input::placeholder { color: var(--text-dim); }
+  .search-btn { background: var(--accent); border: none; border-radius: 12px; color: #0a0a0f; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px; padding: 16px 28px; cursor: pointer; transition: all 0.2s; letter-spacing: 0.05em; white-space: nowrap; }
+  .search-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .search-btn:active { transform: translateY(0); }
+  .search-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .filters-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .filter-label { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-right: 4px; }
+  .filter-chip { display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 6px 14px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: all 0.18s; user-select: none; }
+  .filter-chip:hover { border-color: var(--border-bright); color: var(--text); }
+  .filter-chip.active { background: rgba(0,229,160,0.1); border-color: rgba(0,229,160,0.35); color: var(--accent); }
+  .filter-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .chip-reddit.active { background: rgba(255,100,0,0.1); border-color: rgba(255,100,0,0.35); color: #ff6400; }
+  .chip-telegram.active { background: rgba(40,160,240,0.1); border-color: rgba(40,160,240,0.35); color: #28a0f0; }
+  .chip-twitter.active { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: #e0e0e0; }
+  .chip-web.active { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.35); color: #a78bfa; }
+  .chip-news.active { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.35); color: var(--accent3); }
+  .chip-youtube.active { background: rgba(255,50,50,0.1); border-color: rgba(255,50,50,0.35); color: #ff3232; }
+  .status-bar { display: none; align-items: center; gap: 12px; margin-bottom: 28px; padding: 14px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-muted); }
+  .status-bar.visible { display: flex; }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(0,229,160,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status-text { flex: 1; }
+  .results-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+  .results-count { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-dim); }
+  .results-topic { font-size: 22px; font-weight: 500; }
+  .results-topic em { font-style: normal; color: var(--accent); }
+  .threads-list { display: flex; flex-direction: column; gap: 14px; }
+  .thread-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; transition: all 0.2s; animation: fadeSlide 0.35s ease both; position: relative; overflow: hidden; }
+  .thread-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--card-accent, var(--accent)); border-radius: 3px 0 0 3px; }
+  .thread-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+  @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .thread-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .source-badge { display: inline-flex; align-items: center; gap: 5px; font-family: 'Space Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 100px; font-weight: 700; flex-shrink: 0; }
+  .badge-reddit { background: rgba(255,100,0,0.12); color: #ff6400; }
+  .badge-telegram { background: rgba(40,160,240,0.12); color: #28a0f0; }
+  .badge-twitter, .badge-x { background: rgba(255,255,255,0.08); color: #c0c0c0; }
+  .badge-web, .badge-forum { background: rgba(124,58,237,0.12); color: #a78bfa; }
+  .badge-news { background: rgba(245,158,11,0.12); color: var(--accent3); }
+  .badge-youtube { background: rgba(255,50,50,0.12); color: #ff3232; }
+  .viral-score { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; }
+  .viral-score .fire { color: var(--red); }
+  .thread-title { font-size: 15px; font-weight: 500; line-height: 1.45; margin-bottom: 8px; color: var(--text); }
+  .thread-title a { color: inherit; text-decoration: none; transition: color 0.15s; }
+  .thread-title a:hover { color: var(--accent); }
+  .thread-meta { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
+  .thread-stats { display: flex; flex-wrap: wrap; gap: 16px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); }
+  .stat { display: flex; align-items: center; gap: 5px; }
+  .stat-val { color: var(--text-muted); font-weight: 700; }
+  .error-box { display: none; background: rgba(255,68,102,0.07); border: 1px solid rgba(255,68,102,0.25); border-radius: 12px; padding: 16px 20px; color: #ff8899; font-size: 14px; margin-bottom: 24px; }
+  .error-box.visible { display: block; }
+  .empty { text-align: center; padding: 60px 0; color: var(--text-dim); }
+  .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .tips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .tip-chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 8px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: all 0.18s; }
+  .tip-chip:hover { border-color: var(--border-bright); color: var(--text); background: rgba(255,255,255,0.04); }
+  #raw-toggle { display: none; background: none; border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); cursor: pointer; margin-top: 16px; transition: all 0.18s; }
+  #raw-toggle:hover { border-color: var(--border-bright); color: var(--text-muted); }
+  #stream-raw { display: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 12px; font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-muted); white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; }
+  @media (max-width: 600px) {
+    .container { padding: 32px 16px 60px; }
+    .input-row { flex-direction: column; }
+    .search-btn { width: 100%; padding: 16px; }
+    h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="blob1"></div>
+<div class="blob2"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-badge">Viral Thread Finder</div>
+    <h1>Trova i thread<br><span>più virali</span> del web</h1>
+    <p class="subtitle">Inserisci un argomento e scopri i thread più discussi su Reddit, Telegram, X, forum e siti web.</p>
+  </div>
+  <div class="search-panel">
+    <div class="input-row">
+      <input type="text" class="topic-input" id="topic-input"
+        placeholder="es. intelligenza artificiale, PS5, crypto..."
+        onkeydown="if(event.key==='Enter') search()" />
+      <button class="search-btn" id="search-btn" onclick="search()">CERCA →</button>
+    </div>
+    <div class="filters-row">
+      <span class="filter-label">Fonti:</span>
+      <div class="filter-chip chip-reddit active" onclick="toggleFilter(this,'reddit')"><span class="dot"></span> Reddit</div>
+      <div class="filter-chip chip-twitter active" onclick="toggleFilter(this,'twitter')"><span class="dot"></span> X / Twitter</div>
+      <div class="filter-chip chip-telegram active" onclick="toggleFilter(this,'telegram')"><span class="dot"></span> Telegram</div>
+      <div class="filter-chip chip-web active" onclick="toggleFilter(this,'web')"><span class="dot"></span> Forum / Web</div>
+      <div class="filter-chip chip-news active" onclick="toggleFilter(this,'news')"><span class="dot"></span> News</div>
+      <div class="filter-chip chip-youtube active" onclick="toggleFilter(this,'youtube')"><span class="dot"></span> YouTube</div>
+    </div>
+  </div>
+  <div id="tips-section">
+    <div class="tips">
+      <div class="tip-chip" onclick="useTip(this)">🤖 Intelligenza artificiale</div>
+      <div class="tip-chip" onclick="useTip(this)">💻 Linux vs Windows</div>
+      <div class="tip-chip" onclick="useTip(this)">🎮 PlayStation 5</div>
+      <div class="tip-chip" onclick="useTip(this)">₿ Bitcoin 2024</div>
+      <div class="tip-chip" onclick="useTip(this)">⚽ Juventus</div>
+      <div class="tip-chip" onclick="useTip(this)">🇮🇹 Politica italiana</div>
+      <div class="tip-chip" onclick="useTip(this)">🎬 Netflix serie TV</div>
+      <div class="tip-chip" onclick="useTip(this)">🚀 SpaceX Starship</div>
+    </div>
+  </div>
+  <div class="status-bar" id="status-bar">
+    <div class="spinner"></div>
+    <span class="status-text" id="status-text">Ricerca in corso...</span>
+  </div>
+  <div class="error-box" id="error-box"></div>
+  <div id="results-section"></div>
+  <button id="raw-toggle" onclick="toggleRaw()">mostra risposta raw ↓</button>
+  <pre id="stream-raw"></pre>
+</div>
+<script>
+let activeFilters = new Set(['reddit','twitter','telegram','web','news','youtube']);
+function toggleFilter(el, name) {
+  el.classList.toggle('active');
+  if (activeFilters.has(name)) activeFilters.delete(name);
+  else activeFilters.add(name);
+}
+function useTip(el) {
+  const text = el.textContent.replace(/^[\u{1F000}-\u{1FFFF}]\s*/u, '').trim();
+  document.getElementById('topic-input').value = text;
+  document.getElementById('topic-input').focus();
+}
+function setStatus(text, visible = true) {
+  const bar = document.getElementById('status-bar');
+  bar.classList.toggle('visible', visible);
+  document.getElementById('status-text').textContent = text;
+}
+function showError(msg) {
+  const el = document.getElementById('error-box');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+function hideError() { document.getElementById('error-box').classList.remove('visible'); }
+function toggleRaw() {
+  const el = document.getElementById('stream-raw');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+const SOURCE_COLORS = { reddit:'#ff6400', telegram:'#28a0f0', twitter:'#888', x:'#888', web:'#a78bfa', forum:'#a78bfa', news:'#f59e0b', youtube:'#ff3232' };
+function getCardAccent(source) { return SOURCE_COLORS[(source||'').toLowerCase()] || SOURCE_COLORS.web; }
+function getBadgeClass(source) {
+  const map = { reddit:'badge-reddit', telegram:'badge-telegram', twitter:'badge-twitter', x:'badge-x', web:'badge-web', forum:'badge-forum', news:'badge-news', youtube:'badge-youtube' };
+  return map[(source||'').toLowerCase()] || 'badge-web';
+}
+function fmt(n) {
+  if (!n) return '?';
+  const num = parseInt(String(n).replace(/[^0-9]/g, ''));
+  if (isNaN(num)) return String(n);
+  if (num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num/1000).toFixed(1) + 'K';
+  return num.toLocaleString('it-IT');
+}
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function renderThreads(threads, topic) {
+  const section = document.getElementById('results-section');
+  if (!threads || threads.length === 0) {
+    section.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><p>Nessun thread trovato.</p></div>`;
+    return;
+  }
+  const filtered = threads.filter(t => {
+    const s = (t.source||'').toLowerCase();
+    if (activeFilters.size === 0) return true;
+    if (s === 'x') return activeFilters.has('twitter');
+    if (s === 'forum') return activeFilters.has('web');
+    return activeFilters.has(s);
+  });
+  let html = `<div class="results-header"><div class="results-topic">Thread virali su <em>${escHtml(topic)}</em></div><div class="results-count">${filtered.length} risultati</div></div><div class="threads-list">`;
+  filtered.forEach((t, i) => {
+    const accent = getCardAccent(t.source);
+    const badgeClass = getBadgeClass(t.source);
+    const titleHtml = t.url ? `<a href="${escHtml(t.url)}" target="_blank" rel="noopener">${escHtml(t.title)}</a>` : escHtml(t.title);
+    const stats = [];
+    if (t.upvotes||t.likes||t.reactions) stats.push(`<span class="stat">👍 <span class="stat-val">${fmt(t.upvotes||t.likes||t.reactions)}</span></span>`);
+    if (t.comments) stats.push(`<span class="stat">💬 <span class="stat-val">${fmt(t.comments)}</span></span>`);
+    if (t.shares||t.retweets) stats.push(`<span class="stat">🔁 <span class="stat-val">${fmt(t.shares||t.retweets)}</span></span>`);
+    if (t.views) stats.push(`<span class="stat">👁 <span class="stat-val">${fmt(t.views)}</span></span>`);
+    if (t.date) stats.push(`<span class="stat">📅 <span class="stat-val">${escHtml(t.date)}</span></span>`);
+    const viralEmoji = t.viral_score >= 9 ? '🔥🔥' : t.viral_score >= 7 ? '🔥' : t.viral_score >= 5 ? '⚡' : '📌';
+    html += `<div class="thread-card" style="--card-accent:${accent}; animation-delay:${i*60}ms"><div class="thread-header"><span class="source-badge ${badgeClass}">${escHtml(t.source||'web').toUpperCase()}</span><div class="viral-score"><span class="fire">${viralEmoji}</span> score ${t.viral_score||'?'}/10</div></div><div class="thread-title">${titleHtml}</div>${t.summary ? `<div class="thread-meta">${escHtml(t.summary)}</div>` : ''}<div class="thread-stats">${stats.join('')}</div></div>`;
+  });
+  html += '</div>';
+  section.innerHTML = html;
+  document.getElementById('tips-section').style.display = 'none';
+}
+function parseJSON(text) {
+  let parsed = null;
+  try { parsed = JSON.parse(text.trim()); } catch {}
+  if (!parsed) { const f = text.match(/```(?:json)?\s*([\s\S]*?)```/); if (f) { try { parsed = JSON.parse(f[1].trim()); } catch {} } }
+  if (!parsed) { const b = text.match(/\{[\s\S]*?"threads"[\s\S]*\}/); if (b) { try { parsed = JSON.parse(b[0]); } catch {} } }
+  if (!parsed) { const a = text.match(/\{[\s\S]*\}/); if (a) { try { parsed = JSON.parse(a[0]); } catch {} } }
+  if (!parsed) { const r = text.match(/\[[\s\S]*\]/); if (r) { try { parsed = { threads: JSON.parse(r[0]) }; } catch {} } }
+  return parsed;
+}
+async function search() {
+  const topic = document.getElementById('topic-input').value.trim();
+  if (!topic) { document.getElementById('topic-input').focus(); return; }
+  const btn = document.getElementById('search-btn');
+  btn.disabled = true;
+  btn.textContent = 'RICERCA...';
+  hideError();
+  setStatus('🔍 Ricerca thread virali in corso...');
+  document.getElementById('results-section').innerHTML = '';
+  try {
+    const res = await fetch('/api/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, sources: Array.from(activeFilters) })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    const fullText = data.text || '';
+    document.getElementById('stream-raw').textContent = fullText || '(vuoto)';
+    document.getElementById('raw-toggle').style.display = 'block';
+    if (!fullText) throw new Error('Nessuna risposta dal server.');
+    const parsed = parseJSON(fullText);
+    if (!parsed || !parsed.threads || !Array.isArray(parsed.threads)) throw new Error('JSON non trovato. Clicca "mostra risposta raw" per il dettaglio.');
+    setStatus('', false);
+    renderThreads(parsed.threads, topic);
+  } catch (err) {
+    setStatus('', false);
+    showError('❌ ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'CERCA →';
+  }
+}
+</script>
+</body>
+</html>
