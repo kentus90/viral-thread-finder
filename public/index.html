@@ -343,7 +343,8 @@ function loadBgImage(theme) {
     img.onload = function(){ if(!done){done=true;resolve(img);} };
     img.onerror = function(){ if(!done){done=true;resolve(null);} };
     setTimeout(function(){ if(!done){done=true;resolve(null);} }, 7000);
-    img.src = 'https://source.unsplash.com/1080x1350/?' + encodeURIComponent(theme.img);
+    var seed = encodeURIComponent((window.currentTopic||theme.img||'viral').replace(/[^a-z0-9]/gi,'').substring(0,12) || 'viral');
+    img.src = 'https://picsum.photos/seed/' + seed + '/1080/1350';
   });
 }
 
@@ -352,11 +353,9 @@ function drawEditorial(canvas, slide, theme, bgImg, idx, total) {
   canvas.width=W;canvas.height=H;
   var ctx=canvas.getContext('2d');
 
-  // Paper background
   ctx.fillStyle=theme.paper;ctx.fillRect(0,0,W,H);
 
   if (slide.layout==='cover') {
-    // Full bleed image top half
     if (bgImg) {
       var ir=bgImg.width/bgImg.height, tw=W, th=H*0.62, cr=tw/th, dw,dh,dx,dy;
       if (ir>cr){dh=th;dw=th*ir;dx=(tw-dw)/2;dy=0;} else {dw=tw;dh=tw/ir;dx=0;dy=(th-dh)/2;}
@@ -367,20 +366,16 @@ function drawEditorial(canvas, slide, theme, bgImg, idx, total) {
       ctx.fillStyle=g;ctx.fillRect(0,0,W,th);
       ctx.restore();
     }
-    // Kicker
     ctx.fillStyle=theme.accent;ctx.fillRect(80,H*0.62+40,50,6);
     ctx.font='bold 30px monospace';ctx.textAlign='left';
     ctx.fillText((slide.kicker||'VIRALE').toUpperCase(),150,H*0.62+52);
-    // Hook headline (serif, big)
     ctx.fillStyle='#ffffff';ctx.font='900 92px "Playfair Display", serif';
     var hy=H*0.62+150;
     var hl=wrapText(ctx,slide.text||'',80,hy,W-160,98,4);
-    // Subtitle
     if (slide.sub) {
       ctx.fillStyle=theme.muted;ctx.font='36px "DM Sans", sans-serif';
       wrapText(ctx,slide.sub,80,hy+hl*98+30,W-160,48,3);
     }
-    // swipe hint
     ctx.fillStyle=theme.accent;ctx.font='bold 28px monospace';ctx.textAlign='right';
     ctx.fillText('SCORRI  >',W-80,H-70);
   } else if (slide.layout==='cta') {
@@ -402,8 +397,6 @@ function drawEditorial(canvas, slide, theme, bgImg, idx, total) {
     ctx.fillText('@viral.thread.finder',W/2,H/2+220);
     ctx.fillStyle=theme.accent;ctx.fillRect(W/2-40,H-90,80,5);
   } else {
-    // body slide - editorial
-    // top thin image strip
     if (bgImg) {
       ctx.save();ctx.globalAlpha=0.18;
       var ir3=bgImg.width/bgImg.height,cr3=W/H,dw3,dh3,dx3,dy3;
@@ -411,17 +404,13 @@ function drawEditorial(canvas, slide, theme, bgImg, idx, total) {
       ctx.drawImage(bgImg,dx3,dy3,dw3,dh3);ctx.restore();
       ctx.fillStyle=theme.paper+'e0';ctx.fillRect(0,0,W,H);
     }
-    // number large faint
     ctx.fillStyle=theme.accent+'1f';ctx.font='900 320px "Playfair Display", serif';ctx.textAlign='left';
     ctx.fillText(String(idx),60,H-100);
-    // kicker
     ctx.fillStyle=theme.accent;ctx.fillRect(80,180,50,6);
     ctx.font='bold 30px monospace';ctx.textAlign='left';
     ctx.fillText((slide.kicker||'').toUpperCase(),150,192);
-    // main text serif
     ctx.fillStyle='#ffffff';ctx.font='700 72px "Playfair Display", serif';
     wrapText(ctx,slide.text||'',80,360,W-160,84,7);
-    // footer
     ctx.fillStyle=theme.muted+'aa';ctx.font='22px monospace';
     ctx.fillText('VIRAL THREAD FINDER',80,H-70);
     ctx.fillStyle=theme.accent;ctx.font='bold 24px monospace';ctx.textAlign='right';
@@ -457,7 +446,6 @@ function makeCarousel() {
 
 function renderCarousel(copySlides) {
   var theme = getTheme(currentThread);
-  // build slide list: cover + bodies + cta
   var slides = [];
   for (var i=0;i<copySlides.length;i++){
     var c = copySlides[i];
@@ -467,7 +455,7 @@ function renderCarousel(copySlides) {
   document.getElementById('carousel-content').innerHTML='<div class="carousel-generating"><div class="spinner"></div>Disegno le slide...</div>';
 
   loadBgImage(theme).then(function(bgImg){
-    var html='<div class="carousel-hint">Tieni premuto su ogni immagine per salvarla nei rullino</div>';
+    var html='<div class="carousel-hint">Tieni premuto su ogni immagine per salvarla nel rullino</div>';
     for(var i=0;i<slides.length;i++){
       html+='<div class="slide-wrap"><canvas class="slide-canvas" id="sl-'+i+'"></canvas>';
       html+='<a class="dl-btn" id="dl-'+i+'" download="slide-'+(i+1)+'.png">Salva slide '+(i+1)+'</a></div>';
