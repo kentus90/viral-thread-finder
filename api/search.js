@@ -18,23 +18,27 @@ export default async function handler(req, res) {
 
     const userPrompt = `Cerca discussioni e thread reali e popolari su: "${topic}". Fonti: ${sourcesStr}.
 
-ISTRUZIONI:
-- Usa web_search per trovare discussioni REALI con URL verificabili
-- Includi SOLO thread che trovi davvero nelle ricerche, mai inventati
-- Per i numeri (upvotes, comments, views): inserisci il valore solo se lo trovi nella fonte, altrimenti null
-- Includi quanti thread reali riesci a trovare (anche solo 4-5 se sono pochi)
+STRATEGIA DI RICERCA:
+- Se il termine e generico (es. "gaming", "sport", "musica"), NON cercarlo da solo: scomponilo in sotto-argomenti specifici e attuali e cerca quelli. Esempio: "gaming" -> cerca "GTA 6 reddit", "PS5 vs Xbox 2026", "Nintendo Switch 2", "Steam sale", giochi popolari del momento, ecc.
+- Fai piu ricerche diverse (almeno 3-4 query) per coprire l'argomento da angolazioni diverse
+- Cerca su Reddit, forum, news recenti per trovare le discussioni piu attive
+
+REGOLE:
+- Includi SOLO thread reali con URL verificabili che trovi nelle ricerche, mai inventati
+- Per i numeri (upvotes, comments, views): inserisci il valore solo se lo trovi davvero, altrimenti null
+- Trova sempre almeno 6 thread reali. Un argomento popolare ha SEMPRE discussioni attive: continua a cercare con query diverse finche non ne trovi abbastanza
 - Non scrivere MAI testo di rifiuto o spiegazioni: rispondi sempre e solo con il JSON
 
 Formato JSON:
 {"threads":[{"title":"titolo reale","source":"reddit","url":"URL reale verificabile","summary":"di cosa parla","upvotes":null,"comments":null,"views":null,"date":"quando","viral_score":7}]}
 
-Ordina per viral_score decrescente. Se non trovi nulla, restituisci {"threads":[]}.`;
+Ordina per viral_score decrescente.`;
 
     const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
     let messages = [{ role: 'user', content: userPrompt }];
     let fullText = '';
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 12; i++) {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
