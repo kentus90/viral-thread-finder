@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Viral Thread Finder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;
@@ -90,14 +90,16 @@
   .action-label{font-size:15px;font-weight:500;color:var(--text)}
   .action-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
   .action-cancel{width:100%;background:none;border:1px solid var(--border);border-radius:14px;padding:14px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text-muted);cursor:pointer;margin-top:4px;-webkit-tap-highlight-color:transparent}
-  .carousel-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .carousel-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .carousel-modal.visible{display:block}
   .carousel-inner{max-width:420px;margin:0 auto;padding:20px 16px 60px}
-  .carousel-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .carousel-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;position:sticky;top:0;background:rgba(10,10,15,0.9);padding:10px 0;z-index:2}
   .carousel-topbar h2{font-family:'Space Mono',monospace;font-size:14px;color:var(--text)}
+  .carousel-hint{font-size:12px;color:var(--text-dim);text-align:center;margin-bottom:18px}
   .close-carousel{background:rgba(255,255,255,0.08);border:none;color:var(--text);border-radius:100px;padding:8px 16px;font-size:13px;cursor:pointer}
+  .dl-all{display:block;width:100%;background:var(--accent);color:#0a0a0f;border:none;border-radius:12px;padding:14px;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;margin-bottom:18px;cursor:pointer;text-align:center;text-decoration:none}
   .slide-wrap{margin-bottom:16px}
-  .slide-canvas{width:100%;border-radius:14px;display:block}
+  .slide-canvas{width:100%;border-radius:14px;display:block;box-shadow:0 8px 30px rgba(0,0,0,0.4)}
   .dl-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:13px;color:var(--text-muted);cursor:pointer;margin-top:6px;text-decoration:none;-webkit-tap-highlight-color:transparent}
   .dl-btn:active{background:rgba(255,255,255,0.1)}
   .carousel-generating{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px}
@@ -159,7 +161,7 @@
     </button>
     <button class="action-btn" onclick="makeCarousel()">
       <span class="action-icon">&#127912;</span>
-      <div><div class="action-label">Crea carosello Instagram</div><div class="action-sub">Genera slide da condividere</div></div>
+      <div><div class="action-label">Crea carosello Instagram</div><div class="action-sub">Copy generato dall'AI + grafica editoriale</div></div>
     </button>
     <button class="action-cancel" onclick="closeAction()">Annulla</button>
   </div>
@@ -172,7 +174,7 @@
       <button class="close-carousel" onclick="closeCarousel()">Chiudi</button>
     </div>
     <div id="carousel-content">
-      <div class="carousel-generating"><div class="spinner"></div>Generazione slide in corso...</div>
+      <div class="carousel-generating"><div class="spinner"></div>L'AI sta scrivendo il copy...</div>
     </div>
   </div>
 </div>
@@ -211,12 +213,10 @@ var BADGE_MAP = {reddit:'badge-reddit',telegram:'badge-telegram',twitter:'badge-
 function parseJSON(text) {
   var p = null;
   try { p = JSON.parse(text.trim()); return p; } catch(e){}
-  var m = text.match(/```[\s\S]*?({[\s\S]*?"threads"[\s\S]*?})[\s\S]*?```/);
+  var m = text.match(/```[\s\S]*?({[\s\S]*?})[\s\S]*?```/);
   if (m) { try { return JSON.parse(m[1]); } catch(e){} }
-  var m2 = text.match(/{[\s\S]*?"threads"[\s\S]*?}/);
+  var m2 = text.match(/{[\s\S]*}/);
   if (m2) { try { return JSON.parse(m2[0]); } catch(e){} }
-  var m3 = text.match(/{[\s\S]*}/);
-  if (m3) { try { return JSON.parse(m3[0]); } catch(e){} }
   var m4 = text.match(/\[[\s\S]*\]/);
   if (m4) { try { return {threads:JSON.parse(m4[0])}; } catch(e){} }
   return null;
@@ -310,38 +310,29 @@ function doSearch() {
 }
 document.getElementById('topic-input').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch();});
 
-/* ---- CAROUSEL ---- */
+/* ===== CAROUSEL ===== */
 function getTheme(thread) {
-  var text = ((thread.title||'')+(thread.summary||'')+(thread.source||'')).toLowerCase();
-  if (/calcio|sport|juve|inter|milan|serie a|football|nba|basket|tennis|f1|formula/.test(text)) return {bg:'#0d1f0d',bg2:'#1a3a1a',accent:'#22c55e',accent2:'#86efac',text:'#f0fdf4',sub:'#bbf7d0',label:'SPORT',img:'stadium,sport'};
-  if (/crypto|bitcoin|btc|ethereum|web3|nft|finanza|borsa|mercato/.test(text)) return {bg:'#0f1a0a',bg2:'#1c3310',accent:'#f59e0b',accent2:'#fde68a',text:'#fffbeb',sub:'#fef3c7',label:'CRYPTO',img:'finance,crypto'};
-  if (/ai|intelligenza artificiale|chatgpt|openai|llm|tech|tecnologia|apple|google|microsoft|software/.test(text)) return {bg:'#080e1f',bg2:'#0f1f40',accent:'#6366f1',accent2:'#a5b4fc',text:'#eef2ff',sub:'#c7d2fe',label:'TECH',img:'technology,abstract'};
-  if (/polit|governo|elezioni|legge|parlamento|meloni|salvini|politica/.test(text)) return {bg:'#1a0a0a',bg2:'#380f0f',accent:'#ef4444',accent2:'#fca5a5',text:'#fff1f2',sub:'#fecaca',label:'POLITICA',img:'government,building'};
-  if (/netflix|film|serie|cinema|musica|gaming|ps5|xbox|anime|giochi|videogioco/.test(text)) return {bg:'#120a1f',bg2:'#240f40',accent:'#a855f7',accent2:'#d8b4fe',text:'#faf5ff',sub:'#e9d5ff',label:'ENTERTAINMENT',img:'gaming,neon'};
-  if (/reddit/.test(text)) return {bg:'#1a0e05',bg2:'#332010',accent:'#ff6400',accent2:'#ffb380',text:'#fff7f0',sub:'#ffe0cc',label:'REDDIT',img:'abstract,orange'};
-  if (/telegram/.test(text)) return {bg:'#05101a',bg2:'#0a2033',accent:'#28a0f0',accent2:'#93c5fd',text:'#f0f9ff',sub:'#bfdbfe',label:'TELEGRAM',img:'abstract,blue'};
-  return {bg:'#0a0a0f',bg2:'#1a1a24',accent:'#00e5a0',accent2:'#6ee7b7',text:'#f0f0f5',sub:'#d1fae5',label:'VIRAL',img:'abstract,dark'};
+  var text = ((thread.title||'')+(thread.summary||'')+(thread.source||'')+(window.currentTopic||'')).toLowerCase();
+  if (/calcio|sport|juve|inter|milan|serie a|football|nba|basket|tennis|f1|formula|atleti/.test(text)) return {ink:'#0a1f0f',paper:'#0d1f0d',accent:'#22c55e',muted:'#86efac',img:'stadium,football,sport'};
+  if (/crypto|bitcoin|btc|ethereum|web3|nft|finanza|borsa|mercato|trading/.test(text)) return {ink:'#1a1405',paper:'#0f1a0a',accent:'#f59e0b',muted:'#fde68a',img:'finance,money,chart'};
+  if (/ai|intelligenza artificiale|chatgpt|openai|llm|tech|tecnologia|apple|google|microsoft|software/.test(text)) return {ink:'#070b1f',paper:'#080e1f',accent:'#6366f1',muted:'#a5b4fc',img:'technology,futuristic,abstract'};
+  if (/polit|governo|elezioni|legge|parlamento|meloni|salvini/.test(text)) return {ink:'#1a0808',paper:'#1a0a0a',accent:'#ef4444',muted:'#fca5a5',img:'architecture,city,government'};
+  if (/netflix|film|serie|cinema|musica|gaming|ps5|xbox|anime|giochi|videogioco/.test(text)) return {ink:'#100a1f',paper:'#120a1f',accent:'#a855f7',muted:'#d8b4fe',img:'cinema,neon,lights'};
+  return {ink:'#0a0a0f',paper:'#0a0a0f',accent:'#00e5a0',muted:'#6ee7b7',img:'abstract,dark,minimal'};
 }
 
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
   var words = String(text).split(' ');
-  var line = '';
-  var lines = [];
+  var line = '', lines = [];
   for (var i=0;i<words.length;i++) {
     var test = line+words[i]+' ';
     if (ctx.measureText(test).width > maxWidth && i > 0) { lines.push(line.trim()); line = words[i]+' '; }
     else line = test;
   }
   lines.push(line.trim());
+  if (maxLines && lines.length > maxLines) { lines = lines.slice(0,maxLines); lines[maxLines-1]+='...'; }
   for (var j=0;j<lines.length;j++) ctx.fillText(lines[j], x, y+j*lineHeight);
   return lines.length;
-}
-
-function roundRect(ctx,x,y,w,h,r){
-  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
-  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
-  ctx.closePath();ctx.fill();
 }
 
 function loadBgImage(theme) {
@@ -351,75 +342,90 @@ function loadBgImage(theme) {
     var done = false;
     img.onload = function(){ if(!done){done=true;resolve(img);} };
     img.onerror = function(){ if(!done){done=true;resolve(null);} };
-    setTimeout(function(){ if(!done){done=true;resolve(null);} }, 6000);
-    img.src = 'https://source.unsplash.com/1080x1080/?' + encodeURIComponent(theme.img);
+    setTimeout(function(){ if(!done){done=true;resolve(null);} }, 7000);
+    img.src = 'https://source.unsplash.com/1080x1350/?' + encodeURIComponent(theme.img);
   });
 }
 
-function drawSlide(canvas, slide, theme, bgImg) {
-  var W=1080,H=1080;
+function drawEditorial(canvas, slide, theme, bgImg, idx, total) {
+  var W=1080,H=1350;
   canvas.width=W;canvas.height=H;
   var ctx=canvas.getContext('2d');
-  var grad=ctx.createLinearGradient(0,0,W,H);
-  grad.addColorStop(0,theme.bg);grad.addColorStop(1,theme.bg2);
-  ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
-  if (bgImg) {
-    var ir = bgImg.width/bgImg.height, cr = W/H, dw,dh,dx,dy;
-    if (ir > cr) { dh=H; dw=H*ir; dx=(W-dw)/2; dy=0; }
-    else { dw=W; dh=W/ir; dx=0; dy=(H-dh)/2; }
-    ctx.drawImage(bgImg, dx, dy, dw, dh);
-    var ov = ctx.createLinearGradient(0,0,0,H);
-    ov.addColorStop(0, theme.bg+'cc'); ov.addColorStop(0.5, theme.bg+'aa'); ov.addColorStop(1, theme.bg+'f2');
-    ctx.fillStyle = ov; ctx.fillRect(0,0,W,H);
-  }
-  var rg=ctx.createRadialGradient(W*.8,H*.2,0,W*.8,H*.2,500);
-  rg.addColorStop(0,theme.accent+'30');rg.addColorStop(1,'transparent');
-  ctx.fillStyle=rg;ctx.fillRect(0,0,W,H);
 
-  if (slide.type==='cover') {
-    ctx.fillStyle=theme.accent+'33';roundRect(ctx,60,60,160,50,25);
-    ctx.fillStyle=theme.accent;ctx.font='bold 24px monospace';ctx.textAlign='center';ctx.fillText(theme.label,140,92);
-    ctx.fillStyle=theme.accent+'1a';ctx.font='bold 130px sans-serif';ctx.textAlign='left';
-    ctx.fillText((slide.keyword||'').toUpperCase().substring(0,9),50,310);
-    ctx.fillStyle=theme.text;ctx.font='bold 66px sans-serif';ctx.textAlign='left';
-    wrapText(ctx,slide.title,60,490,W-120,80);
-    ctx.fillStyle=theme.sub;ctx.font='34px sans-serif';
-    wrapText(ctx,slide.subtitle,60,800,W-120,46);
-    ctx.fillStyle=theme.accent;ctx.fillRect(60,H-88,80,5);
-    ctx.fillStyle=theme.sub+'aa';ctx.font='24px monospace';ctx.fillText('VIRAL THREAD FINDER',160,H-68);
-  } else if (slide.type==='thread') {
-    ctx.fillStyle=theme.accent+'25';roundRect(ctx,60,60,220,56,28);
-    ctx.fillStyle=theme.accent;ctx.font='bold 26px monospace';ctx.textAlign='center';ctx.fillText(slide.source,170,95);
-    ctx.fillStyle=theme.text+'88';ctx.font='26px monospace';ctx.textAlign='right';ctx.fillText('SCORE '+slide.viral_score+'/10',W-60,95);
-    ctx.fillStyle=theme.text;ctx.font='bold 54px sans-serif';ctx.textAlign='left';
-    var ln=wrapText(ctx,slide.title,60,210,W-120,68);
-    var dy=210+ln*68+44;
-    ctx.fillStyle=theme.accent+'66';ctx.fillRect(60,dy,W-120,2);
-    ctx.fillStyle=theme.sub;ctx.font='36px sans-serif';
-    wrapText(ctx,slide.summary,60,dy+54,W-120,52);
-    var sy=H-210;
-    ctx.fillStyle=theme.accent+'33';roundRect(ctx,60,sy,W-120,110,18);
-    var statsArr=[];
-    if(slide.upvotes)statsArr.push('UP '+slide.upvotes);
-    if(slide.comments)statsArr.push('COM '+slide.comments);
-    if(slide.views)statsArr.push('VIEW '+slide.views);
-    if(slide.date)statsArr.push(slide.date);
-    ctx.fillStyle=theme.text;ctx.font='bold 28px monospace';ctx.textAlign='left';
-    ctx.fillText(statsArr.join('   ')||'',80,sy+66);
-    ctx.fillStyle=theme.accent;ctx.fillRect(60,H-58,60,4);
-    ctx.fillStyle=theme.sub+'aa';ctx.font='22px monospace';ctx.fillText('VIRAL THREAD FINDER',140,H-42);
-  } else if (slide.type==='cta') {
-    var cg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,420);
-    cg.addColorStop(0,theme.accent+'44');cg.addColorStop(1,'transparent');
-    ctx.fillStyle=cg;ctx.fillRect(0,0,W,H);
-    ctx.fillStyle=theme.accent;ctx.font='bold 90px monospace';ctx.textAlign='center';
-    ctx.fillText(theme.label,W/2,H/2-70);
-    ctx.fillStyle=theme.text;ctx.font='bold 64px sans-serif';
-    ctx.fillText('Segui per altri',W/2,H/2+50);
-    ctx.fillText('thread virali!',W/2,H/2+130);
-    ctx.fillStyle=theme.sub;ctx.font='30px monospace';
-    ctx.fillText('viral-thread-finder.vercel.app',W/2,H/2+230);
-    ctx.fillStyle=theme.accent;ctx.fillRect(W/2-40,H-88,80,5);
+  // Paper background
+  ctx.fillStyle=theme.paper;ctx.fillRect(0,0,W,H);
+
+  if (slide.layout==='cover') {
+    // Full bleed image top half
+    if (bgImg) {
+      var ir=bgImg.width/bgImg.height, tw=W, th=H*0.62, cr=tw/th, dw,dh,dx,dy;
+      if (ir>cr){dh=th;dw=th*ir;dx=(tw-dw)/2;dy=0;} else {dw=tw;dh=tw/ir;dx=0;dy=(th-dh)/2;}
+      ctx.save();ctx.beginPath();ctx.rect(0,0,W,th);ctx.clip();
+      ctx.drawImage(bgImg,dx,dy,dw,dh);
+      var g=ctx.createLinearGradient(0,0,0,th);
+      g.addColorStop(0,'rgba(0,0,0,0.2)');g.addColorStop(1,theme.paper);
+      ctx.fillStyle=g;ctx.fillRect(0,0,W,th);
+      ctx.restore();
+    }
+    // Kicker
+    ctx.fillStyle=theme.accent;ctx.fillRect(80,H*0.62+40,50,6);
+    ctx.font='bold 30px monospace';ctx.textAlign='left';
+    ctx.fillText((slide.kicker||'VIRALE').toUpperCase(),150,H*0.62+52);
+    // Hook headline (serif, big)
+    ctx.fillStyle='#ffffff';ctx.font='900 92px "Playfair Display", serif';
+    var hy=H*0.62+150;
+    var hl=wrapText(ctx,slide.text||'',80,hy,W-160,98,4);
+    // Subtitle
+    if (slide.sub) {
+      ctx.fillStyle=theme.muted;ctx.font='36px "DM Sans", sans-serif';
+      wrapText(ctx,slide.sub,80,hy+hl*98+30,W-160,48,3);
+    }
+    // swipe hint
+    ctx.fillStyle=theme.accent;ctx.font='bold 28px monospace';ctx.textAlign='right';
+    ctx.fillText('SCORRI  >',W-80,H-70);
+  } else if (slide.layout==='cta') {
+    if (bgImg) {
+      ctx.save();ctx.globalAlpha=0.25;
+      var ir2=bgImg.width/bgImg.height,cr2=W/H,dw2,dh2,dx2,dy2;
+      if(ir2>cr2){dh2=H;dw2=H*ir2;dx2=(W-dw2)/2;dy2=0;}else{dw2=W;dh2=W/ir2;dx2=0;dy2=(H-dh2)/2;}
+      ctx.drawImage(bgImg,dx2,dy2,dw2,dh2);ctx.restore();
+      ctx.fillStyle=theme.paper+'d0';ctx.fillRect(0,0,W,H);
+    }
+    ctx.textAlign='center';
+    ctx.fillStyle=theme.accent;ctx.font='bold 30px monospace';
+    ctx.fillText((slide.kicker||'CONCLUSIONE').toUpperCase(),W/2,H/2-200);
+    ctx.fillStyle='#ffffff';ctx.font='900 76px "Playfair Display", serif';
+    wrapText(ctx,slide.text||'Cosa ne pensi?',W/2,H/2-80,W-160,82,4);
+    ctx.fillStyle=theme.muted;ctx.font='32px "DM Sans", sans-serif';
+    ctx.fillText('Commenta e seguici per altri',W/2,H/2+160);
+    ctx.fillStyle=theme.accent;ctx.font='bold 26px monospace';
+    ctx.fillText('@viral.thread.finder',W/2,H/2+220);
+    ctx.fillStyle=theme.accent;ctx.fillRect(W/2-40,H-90,80,5);
+  } else {
+    // body slide - editorial
+    // top thin image strip
+    if (bgImg) {
+      ctx.save();ctx.globalAlpha=0.18;
+      var ir3=bgImg.width/bgImg.height,cr3=W/H,dw3,dh3,dx3,dy3;
+      if(ir3>cr3){dh3=H;dw3=H*ir3;dx3=(W-dw3)/2;dy3=0;}else{dw3=W;dh3=W/ir3;dx3=0;dy3=(H-dh3)/2;}
+      ctx.drawImage(bgImg,dx3,dy3,dw3,dh3);ctx.restore();
+      ctx.fillStyle=theme.paper+'e0';ctx.fillRect(0,0,W,H);
+    }
+    // number large faint
+    ctx.fillStyle=theme.accent+'1f';ctx.font='900 320px "Playfair Display", serif';ctx.textAlign='left';
+    ctx.fillText(String(idx),60,H-100);
+    // kicker
+    ctx.fillStyle=theme.accent;ctx.fillRect(80,180,50,6);
+    ctx.font='bold 30px monospace';ctx.textAlign='left';
+    ctx.fillText((slide.kicker||'').toUpperCase(),150,192);
+    // main text serif
+    ctx.fillStyle='#ffffff';ctx.font='700 72px "Playfair Display", serif';
+    wrapText(ctx,slide.text||'',80,360,W-160,84,7);
+    // footer
+    ctx.fillStyle=theme.muted+'aa';ctx.font='22px monospace';
+    ctx.fillText('VIRAL THREAD FINDER',80,H-70);
+    ctx.fillStyle=theme.accent;ctx.font='bold 24px monospace';ctx.textAlign='right';
+    ctx.fillText(idx+' / '+total,W-80,H-70);
   }
 }
 
@@ -427,34 +433,55 @@ function makeCarousel() {
   closeAction();
   if (!currentThread) return;
   document.getElementById('carousel-modal').classList.add('visible');
-  document.getElementById('carousel-content').innerHTML='<div class="carousel-generating"><div class="spinner"></div>Generazione slide (carico immagini)...</div>';
-  setTimeout(function(){generateCarousel(currentThread);},300);
+  document.getElementById('carousel-content').innerHTML='<div class="carousel-generating"><div class="spinner"></div>L\'AI sta scrivendo il copy...</div>';
+
+  fetch('/api/carousel', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({thread:currentThread})
+  })
+  .then(function(res){return res.json();})
+  .then(function(data){
+    if (data.error){ document.getElementById('carousel-content').innerHTML='<div class="carousel-generating">Errore: '+data.error+'</div>'; return; }
+    var parsed = parseJSON(data.text||'');
+    if (!parsed || !parsed.slides || !parsed.slides.length) {
+      document.getElementById('carousel-content').innerHTML='<div class="carousel-generating">Copy non generato, riprova.</div>';
+      return;
+    }
+    renderCarousel(parsed.slides);
+  })
+  .catch(function(err){
+    document.getElementById('carousel-content').innerHTML='<div class="carousel-generating">Errore di rete: '+err.message+'</div>';
+  });
 }
 
-function generateCarousel(thread) {
-  var theme=getTheme(thread);
-  var kw = (window.currentTopic || (thread.title||'').split(' ')[0] || 'VIRAL');
-  var slides=[
-    {type:'cover',keyword:kw,title:thread.title||'Thread Virale',subtitle:(thread.summary||'Scopri la discussione piu virale del momento').substring(0,120)},
-    {type:'thread',source:(thread.source||'web').toUpperCase(),title:thread.title||'',summary:thread.summary||'',viral_score:thread.viral_score||'?',
-     upvotes:fmt(thread.upvotes||thread.likes||thread.reactions),comments:fmt(thread.comments),views:fmt(thread.views),date:thread.date||''},
-    {type:'cta'}
-  ];
+function renderCarousel(copySlides) {
+  var theme = getTheme(currentThread);
+  // build slide list: cover + bodies + cta
+  var slides = [];
+  for (var i=0;i<copySlides.length;i++){
+    var c = copySlides[i];
+    var layout = (i===0)?'cover':(i===copySlides.length-1)?'cta':'body';
+    slides.push({layout:layout,kicker:c.kicker,text:c.text,sub:c.sub||''});
+  }
+  document.getElementById('carousel-content').innerHTML='<div class="carousel-generating"><div class="spinner"></div>Disegno le slide...</div>';
+
   loadBgImage(theme).then(function(bgImg){
-    var html='';
+    var html='<div class="carousel-hint">Tieni premuto su ogni immagine per salvarla nei rullino</div>';
     for(var i=0;i<slides.length;i++){
       html+='<div class="slide-wrap"><canvas class="slide-canvas" id="sl-'+i+'"></canvas>';
       html+='<a class="dl-btn" id="dl-'+i+'" download="slide-'+(i+1)+'.png">Salva slide '+(i+1)+'</a></div>';
     }
     document.getElementById('carousel-content').innerHTML=html;
+    var total = slides.length;
     for(var j=0;j<slides.length;j++){
       (function(idx,s){
         setTimeout(function(){
           var c=document.getElementById('sl-'+idx);
-          drawSlide(c,s,theme,bgImg);
+          drawEditorial(c,s,theme,bgImg,idx+1,total);
           try { document.getElementById('dl-'+idx).href=c.toDataURL('image/png'); }
-          catch(e){ document.getElementById('dl-'+idx).textContent='Riprova'; }
-        },idx*150);
+          catch(e){ document.getElementById('dl-'+idx).textContent='Fai uno screenshot'; }
+        },idx*200);
       })(j,slides[j]);
     }
   });
