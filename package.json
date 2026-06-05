@@ -1,0 +1,6 @@
+{
+  "name": "viral-thread-finder",
+  "version": "1.0.0",
+  "description": "Trova i thread più virali del web",
+  "private": true
+}
