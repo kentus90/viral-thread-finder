@@ -32,10 +32,10 @@ REGOLE:
 - Basati SOLO sui fatti reali del thread. Non inventare dettagli falsi.
 - Ogni slide (tranne cover e finale) deve avere CONTENUTO SOSTANZIOSO, non frasi di una riga.
 - Tono coinvolgente, ritmo da social ma informativo. Niente banalita tipo "scopri di piu".
-- Ogni slide ha: "kicker" (etichetta breve maiuscola in italiano, es "ESCLUSIVA", "IL CONTESTO", "I DETTAGLI", "IN SINTESI") e "text" (il contenuto). Solo la slide 1 ha anche "sub" (sottotitolo).
+- Ogni slide ha: "kicker" (etichetta breve maiuscola in italiano, es "ESCLUSIVA", "IL CONTESTO", "I DETTAGLI", "IN SINTESI"), "title" (un titolo breve e d'impatto di 2-5 parole, diverso dal testo, che sintetizza la slide), "highlight" (la parola o il numero PIU importante dentro il titolo, da evidenziare graficamente) e "text" (il contenuto disteso). Solo la slide 1 ha anche "sub" (sottotitolo).
 
 Formato JSON:
-{"slides":[{"kicker":"ESCLUSIVA","text":"frase hook breve","sub":"sottotitolo curiosita"},{"kicker":"IL CONTESTO","text":"descrizione completa di 3-4 frasi","sub":""}]}
+{"slides":[{"kicker":"ESCLUSIVA","title":"40 trailer in una notte","highlight":"40","text":"contenuto disteso","sub":"sottotitolo curiosita"}]}
 
 Genera ora, tutto in italiano.`;
 
