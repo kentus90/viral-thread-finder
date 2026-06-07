@@ -359,10 +359,13 @@ function buildCanvaPrompt(slides) {
   p += '- Applica sopra la foto un overlay scuro sfumato cosi il testo bianco resta leggibile.\n\n';
   p += 'STILE GRAFICO:\n';
   p += '- Atmosfera: '+theme.mood+'\n';
-  p += '- Titoli con font serif elegante e grande (tipo Playfair Display), testo bianco\n';
-  p += '- Etichette/kicker con font monospace maiuscolo, colore a contrasto\n';
-  p += '- Layout pulito, molto spazio, una sola idea forte per slide\n';
-  p += '- Coerenza grafica tra tutte le slide\n';
+  p += '- TITOLI: font "Chau Philomene One", molto grandi e a tutta larghezza, testo bianco. Tratta i titoli come elemento grafico forte, non come testo piatto.\n';
+  p += '- DENTRO ogni titolo, evidenzia la parola o il numero chiave (indicato come "evidenzia") con il COLORE ACCENTO vivo e/o dimensione maggiore, in modo che salti subito all\'occhio.\n';
+  p += '- Varia la dimensione del testo per creare gerarchia: titolo enorme, evidenza ancora piu grande, corpo testo medio leggibile.\n';
+  p += '- Etichette/kicker con font monospace maiuscolo, colore accento, piccole in alto.\n';
+  p += '- Corpo testo con font sans-serif pulito, leggibile, su pannello scuro semitrasparente.\n';
+  p += '- Layout pulito ma dinamico, molta aria, una sola idea forte per slide.\n';
+  p += '- Coerenza grafica tra tutte le slide.\n';
   p += '- NON inserire nomi di account, handle o diciture tipo "@nome" o "insider": nessun marchio o firma.\n\n';
   p += 'CONTENUTO DELLE SLIDE:\n';
   for (var i=0;i<slides.length;i++){
@@ -373,9 +376,11 @@ function buildCanvaPrompt(slides) {
     else if (i===slides.length-1) p += ' (FINALE)';
     p += ':\n';
     if (s.kicker) p += '  Etichetta: '+s.kicker+'\n';
-    p += '  Testo: '+s.text+'\n';
+    if (s.title) p += '  Titolo grande: '+s.title+'\n';
+    if (s.highlight) p += '  Parola/numero da evidenziare nel titolo: '+s.highlight+'\n';
+    if (s.text) p += '  Testo: '+s.text+'\n';
     if (s.sub) p += '  Sottotitolo: '+s.sub+'\n';
-    if (i===0) p += '  In basso aggiungi sempre la scritta "Scorri " con una freccetta.\n';
+    if (i===0) p += '  In basso aggiungi sempre la scritta "Scorri" con una freccetta.\n';
     if (i===slides.length-1) p += '  Il testo finale deve essere un invito tipo "Commenta dicendoci la tua".\n';
   }
   p += '\nMantieni coerenza grafica tra tutte le slide. Tutto il testo in italiano.';
