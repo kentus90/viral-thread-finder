@@ -14,23 +14,35 @@ export default async function handler(req, res) {
 
     const sourcesStr = (sources && sources.length > 0) ? sources.join(', ') : 'tutte le piattaforme';
 
-    const systemPrompt = `Sei un ricercatore di tendenze virali. Cerchi discussioni REALI sul web usando web_search. Includi solo thread che hai effettivamente trovato nelle ricerche, con URL veri. Non inventare mai dati o numeri. Rispondi SOLO con JSON valido puro, zero testo, zero backtick.`;
+    const oggi = new Date();
+    const dataOggi = oggi.toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' });
 
-    const userPrompt = `Cerca discussioni e thread reali e popolari su: "${topic}". Fonti: ${sourcesStr}.
+    const systemPrompt = `Sei un ricercatore di tendenze virali. Cerchi discussioni REALI e RECENTI sul web usando web_search. Includi solo thread realmente trovati, con URL veri. Non inventare mai dati. Rispondi SOLO con JSON valido puro, zero testo, zero backtick.`;
 
-STRATEGIA DI RICERCA:
-- Se il termine e generico (es. "gaming", "sport", "musica"), NON cercarlo da solo: scomponilo in sotto-argomenti specifici e attuali e cerca quelli.
-- Fai piu ricerche diverse (almeno 2-3 query) per coprire l'argomento.
-- Cerca su Reddit, forum, news recenti per trovare le discussioni piu attive.
+    const userPrompt = `Cerca discussioni e thread reali e MOLTO RECENTI su: "${topic}". Fonti: ${sourcesStr}.
 
-REGOLE:
-- Includi SOLO thread reali con URL verificabili che trovi nelle ricerche, mai inventati
-- Per i numeri (upvotes, comments, views): inserisci il valore solo se lo trovi davvero, altrimenti null
-- Trova sempre almeno 6 thread reali.
-- Non scrivere MAI testo di rifiuto o spiegazioni: rispondi sempre e solo con il JSON
+DATA DI OGGI: ${dataOggi}.
+
+REGOLA TEMPORALE FONDAMENTALE:
+- Includi SOLO contenuti pubblicati nelle ultime 24-48 ore (da ieri a oggi).
+- Scarta qualsiasi thread o news piu vecchio di 2 giorni, anche se popolare.
+- Nelle query usa termini come "oggi", "ultime ore", la data di oggi, "breaking" per forzare risultati freschi.
+- Se non esistono discussioni cosi recenti, restituisci meno risultati ma SOLO recenti. Mai contenuti vecchi.
+
+QUANTITA: trova al massimo 5-6 thread, i piu virali e recenti. Meglio pochi e ottimi che tanti.
+
+STRATEGIA:
+- Se il termine e generico, scomponilo in sotto-argomenti specifici e attuali.
+- Fai 2-3 ricerche diverse mirate alle ultime ore.
+
+ALTRE REGOLE:
+- Solo thread reali con URL verificabili, mai inventati.
+- Numeri (upvotes, comments, views) solo se reali, altrimenti null.
+- Nel campo "date" indica la data precisa del contenuto.
+- Non scrivere MAI testo di rifiuto: rispondi sempre e solo con il JSON.
 
 Formato JSON:
-{"threads":[{"title":"titolo reale","source":"reddit","url":"URL reale verificabile","summary":"di cosa parla","upvotes":null,"comments":null,"views":null,"date":"quando","viral_score":7}]}
+{"threads":[{"title":"titolo reale","source":"reddit","url":"URL reale","summary":"di cosa parla","upvotes":null,"comments":null,"views":null,"date":"data precisa","viral_score":7}]}
 
 Ordina per viral_score decrescente.`;
 
@@ -75,7 +87,7 @@ Ordina per viral_score decrescente.`;
           content: toolUseBlocks.map(b => ({
             type: 'tool_result',
             tool_use_id: b.id,
-            content: 'Ricerca completata. Ora restituisci SOLO il JSON con i thread reali trovati. Nessun testo, solo JSON.'
+            content: 'Ricerca completata. Ora restituisci SOLO il JSON con i thread reali e recenti trovati. Nessun testo, solo JSON.'
           }))
         });
         continue;
