@@ -21,18 +21,21 @@ Fonte: ${thread.source || ''}
 Riassunto: ${thread.summary || ''}
 Data: ${thread.date || ''}
 
-REGOLE COPY:
-- SCRIVI TUTTO IN ITALIANO. Se la fonte e in inglese, traduci e adatta in italiano naturale.
-- 5-6 slide totali
-- Slide 1 (cover): un HOOK forte e breve che crea curiosita SENZA spiegare tutto (es. "Nessuno se lo aspettava." / "Sta succedendo qualcosa di strano."). Max 6 parole. Aggiungi una riga sotto-titolo che incuriosisce.
-- Slide intermedie: UNA frase per slide, breve e di impatto, che costruisce tensione e fa venire voglia di scorrere. Rivela le info un pezzo alla volta.
-- Ultima slide: una conclusione + invito a commentare/seguire.
-- Tono: coinvolgente, ritmo da social, frasi brevi. NIENTE banalita tipo "scopri di piu".
+STRUTTURA DELLE SLIDE (6 slide totali):
+- Slide 1 (COVER): un HOOK forte e breve che crea curiosita SENZA spiegare tutto (max 6 parole) + un sottotitolo che incuriosisce.
+- Slide 2 (CONTESTO): qui DESCRIVI la notizia in modo piu disteso, 2-3 frasi, spiegando di cosa si tratta e perche e rilevante. Questa slide e piu ricca di testo delle altre.
+- Slide 3, 4 (SVILUPPO): UNA frase breve e di impatto per slide, che rivela i dettagli un pezzo alla volta e costruisce tensione.
+- Slide 5 (PUNTO CHIAVE): la rivelazione o il dato piu interessante.
+- Slide 6 (FINALE): conclusione + invito a commentare e seguire.
+
+REGOLE:
+- SCRIVI TUTTO IN ITALIANO. Se la fonte e in inglese, traduci e adatta.
 - Basati SOLO sui fatti reali del thread. Non inventare dettagli falsi.
-- Ogni slide ha: "kicker" (etichetta breve maiuscola in italiano, es "ESCLUSIVA", "IL FATTO", "PERCHE CONTA") e "text" (la frase).
+- Tono coinvolgente, ritmo da social. Niente banalita tipo "scopri di piu".
+- Ogni slide ha: "kicker" (etichetta breve maiuscola in italiano, es "ESCLUSIVA", "IL CONTESTO", "IL FATTO", "PERCHE CONTA") e "text" (il contenuto). Solo la slide 1 ha anche "sub" (sottotitolo).
 
 Formato JSON:
-{"slides":[{"kicker":"ESCLUSIVA","text":"frase hook breve","sub":"sottotitolo curiosita solo per la prima slide altrimenti vuoto"}]}
+{"slides":[{"kicker":"ESCLUSIVA","text":"frase hook breve","sub":"sottotitolo curiosita"},{"kicker":"IL CONTESTO","text":"descrizione di 2-3 frasi della notizia","sub":""}]}
 
 Genera ora, tutto in italiano.`;
 
