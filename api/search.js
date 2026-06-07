@@ -19,14 +19,14 @@ export default async function handler(req, res) {
     const userPrompt = `Cerca discussioni e thread reali e popolari su: "${topic}". Fonti: ${sourcesStr}.
 
 STRATEGIA DI RICERCA:
-- Se il termine e generico (es. "gaming", "sport", "musica"), NON cercarlo da solo: scomponilo in sotto-argomenti specifici e attuali e cerca quelli. Esempio: "gaming" -> cerca "GTA 6 reddit", "PS5 vs Xbox 2026", "Nintendo Switch 2", "Steam sale", giochi popolari del momento, ecc.
-- Fai piu ricerche diverse (almeno 3-4 query) per coprire l'argomento da angolazioni diverse
-- Cerca su Reddit, forum, news recenti per trovare le discussioni piu attive
+- Se il termine e generico (es. "gaming", "sport", "musica"), NON cercarlo da solo: scomponilo in sotto-argomenti specifici e attuali e cerca quelli.
+- Fai piu ricerche diverse (almeno 2-3 query) per coprire l'argomento.
+- Cerca su Reddit, forum, news recenti per trovare le discussioni piu attive.
 
 REGOLE:
 - Includi SOLO thread reali con URL verificabili che trovi nelle ricerche, mai inventati
 - Per i numeri (upvotes, comments, views): inserisci il valore solo se lo trovi davvero, altrimenti null
-- Trova sempre almeno 6 thread reali. Un argomento popolare ha SEMPRE discussioni attive: continua a cercare con query diverse finche non ne trovi abbastanza
+- Trova sempre almeno 6 thread reali.
 - Non scrivere MAI testo di rifiuto o spiegazioni: rispondi sempre e solo con il JSON
 
 Formato JSON:
@@ -38,7 +38,7 @@ Ordina per viral_score decrescente.`;
     let messages = [{ role: 'user', content: userPrompt }];
     let fullText = '';
 
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 6; i++) {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -48,7 +48,7 @@ Ordina per viral_score decrescente.`;
         },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 4000,
+          max_tokens: 2000,
           system: systemPrompt,
           tools,
           messages
@@ -75,7 +75,7 @@ Ordina per viral_score decrescente.`;
           content: toolUseBlocks.map(b => ({
             type: 'tool_result',
             tool_use_id: b.id,
-            content: 'Ricerca completata. Ora restituisci SOLO il JSON con i thread reali trovati. Nessun testo di spiegazione o rifiuto, solo il JSON.'
+            content: 'Ricerca completata. Ora restituisci SOLO il JSON con i thread reali trovati. Nessun testo, solo JSON.'
           }))
         });
         continue;
