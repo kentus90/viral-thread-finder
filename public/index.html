@@ -313,109 +313,12 @@ document.getElementById('topic-input').addEventListener('keydown',function(e){if
 /* ===== CAROUSEL ===== */
 function getTheme(thread) {
   var text = ((thread.title||'')+(thread.summary||'')+(thread.source||'')+(window.currentTopic||'')).toLowerCase();
-  if (/calcio|sport|juve|inter|milan|serie a|football|nba|basket|tennis|f1|formula|atleti/.test(text)) return {ink:'#0a1f0f',paper:'#0d1f0d',accent:'#22c55e',muted:'#86efac',img:'stadium,football,sport'};
-  if (/crypto|bitcoin|btc|ethereum|web3|nft|finanza|borsa|mercato|trading/.test(text)) return {ink:'#1a1405',paper:'#0f1a0a',accent:'#f59e0b',muted:'#fde68a',img:'finance,money,chart'};
-  if (/ai|intelligenza artificiale|chatgpt|openai|llm|tech|tecnologia|apple|google|microsoft|software/.test(text)) return {ink:'#070b1f',paper:'#080e1f',accent:'#6366f1',muted:'#a5b4fc',img:'technology,futuristic,abstract'};
-  if (/polit|governo|elezioni|legge|parlamento|meloni|salvini/.test(text)) return {ink:'#1a0808',paper:'#1a0a0a',accent:'#ef4444',muted:'#fca5a5',img:'architecture,city,government'};
-  if (/netflix|film|serie|cinema|musica|gaming|ps5|xbox|anime|giochi|videogioco/.test(text)) return {ink:'#100a1f',paper:'#120a1f',accent:'#a855f7',muted:'#d8b4fe',img:'cinema,neon,lights'};
-  return {ink:'#0a0a0f',paper:'#0a0a0f',accent:'#00e5a0',muted:'#6ee7b7',img:'abstract,dark,minimal'};
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
-  var words = String(text).split(' ');
-  var line = '', lines = [];
-  for (var i=0;i<words.length;i++) {
-    var test = line+words[i]+' ';
-    if (ctx.measureText(test).width > maxWidth && i > 0) { lines.push(line.trim()); line = words[i]+' '; }
-    else line = test;
-  }
-  lines.push(line.trim());
-  if (maxLines && lines.length > maxLines) { lines = lines.slice(0,maxLines); lines[maxLines-1]+='...'; }
-  for (var j=0;j<lines.length;j++) ctx.fillText(lines[j], x, y+j*lineHeight);
-  return lines.length;
-}
-
-function loadBgImage(theme) {
-  return new Promise(function(resolve){
-    var img = new Image();
-    img.crossOrigin = 'anonymous';
-    var done = false;
-    img.onload = function(){ if(!done){done=true;resolve(img);} };
-    img.onerror = function(){ if(!done){done=true;resolve(null);} };
-    setTimeout(function(){ if(!done){done=true;resolve(null);} }, 7000);
-    var seed = encodeURIComponent((window.currentTopic||theme.img||'viral').replace(/[^a-z0-9]/gi,'').substring(0,12) || 'viral');
-    img.src = 'https://picsum.photos/seed/' + seed + '/1080/1350';
-  });
-}
-
-function drawEditorial(canvas, slide, theme, bgImg, idx, total) {
-  var W=1080,H=1350;
-  canvas.width=W;canvas.height=H;
-  var ctx=canvas.getContext('2d');
-
-  ctx.fillStyle=theme.paper;ctx.fillRect(0,0,W,H);
-
-  if (slide.layout==='cover') {
-    if (bgImg) {
-      var ir=bgImg.width/bgImg.height, tw=W, th=H*0.62, cr=tw/th, dw,dh,dx,dy;
-      if (ir>cr){dh=th;dw=th*ir;dx=(tw-dw)/2;dy=0;} else {dw=tw;dh=tw/ir;dx=0;dy=(th-dh)/2;}
-      ctx.save();ctx.beginPath();ctx.rect(0,0,W,th);ctx.clip();
-      ctx.drawImage(bgImg,dx,dy,dw,dh);
-      var g=ctx.createLinearGradient(0,0,0,th);
-      g.addColorStop(0,'rgba(0,0,0,0.2)');g.addColorStop(1,theme.paper);
-      ctx.fillStyle=g;ctx.fillRect(0,0,W,th);
-      ctx.restore();
-    }
-    ctx.fillStyle=theme.accent;ctx.fillRect(80,H*0.62+40,50,6);
-    ctx.font='bold 30px monospace';ctx.textAlign='left';
-    ctx.fillText((slide.kicker||'VIRALE').toUpperCase(),150,H*0.62+52);
-    ctx.fillStyle='#ffffff';ctx.font='900 92px "Playfair Display", serif';
-    var hy=H*0.62+150;
-    var hl=wrapText(ctx,slide.text||'',80,hy,W-160,98,4);
-    if (slide.sub) {
-      ctx.fillStyle=theme.muted;ctx.font='36px "DM Sans", sans-serif';
-      wrapText(ctx,slide.sub,80,hy+hl*98+30,W-160,48,3);
-    }
-    ctx.fillStyle=theme.accent;ctx.font='bold 28px monospace';ctx.textAlign='right';
-    ctx.fillText('SCORRI  >',W-80,H-70);
-  } else if (slide.layout==='cta') {
-    if (bgImg) {
-      ctx.save();ctx.globalAlpha=0.25;
-      var ir2=bgImg.width/bgImg.height,cr2=W/H,dw2,dh2,dx2,dy2;
-      if(ir2>cr2){dh2=H;dw2=H*ir2;dx2=(W-dw2)/2;dy2=0;}else{dw2=W;dh2=W/ir2;dx2=0;dy2=(H-dh2)/2;}
-      ctx.drawImage(bgImg,dx2,dy2,dw2,dh2);ctx.restore();
-      ctx.fillStyle=theme.paper+'d0';ctx.fillRect(0,0,W,H);
-    }
-    ctx.textAlign='center';
-    ctx.fillStyle=theme.accent;ctx.font='bold 30px monospace';
-    ctx.fillText((slide.kicker||'CONCLUSIONE').toUpperCase(),W/2,H/2-200);
-    ctx.fillStyle='#ffffff';ctx.font='900 76px "Playfair Display", serif';
-    wrapText(ctx,slide.text||'Cosa ne pensi?',W/2,H/2-80,W-160,82,4);
-    ctx.fillStyle=theme.muted;ctx.font='32px "DM Sans", sans-serif';
-    ctx.fillText('Commenta e seguici per altri',W/2,H/2+160);
-    ctx.fillStyle=theme.accent;ctx.font='bold 26px monospace';
-    ctx.fillText('@viral.thread.finder',W/2,H/2+220);
-    ctx.fillStyle=theme.accent;ctx.fillRect(W/2-40,H-90,80,5);
-  } else {
-    if (bgImg) {
-      ctx.save();ctx.globalAlpha=0.18;
-      var ir3=bgImg.width/bgImg.height,cr3=W/H,dw3,dh3,dx3,dy3;
-      if(ir3>cr3){dh3=H;dw3=H*ir3;dx3=(W-dw3)/2;dy3=0;}else{dw3=W;dh3=W/ir3;dx3=0;dy3=(H-dh3)/2;}
-      ctx.drawImage(bgImg,dx3,dy3,dw3,dh3);ctx.restore();
-      ctx.fillStyle=theme.paper+'e0';ctx.fillRect(0,0,W,H);
-    }
-    ctx.fillStyle=theme.accent+'1f';ctx.font='900 320px "Playfair Display", serif';ctx.textAlign='left';
-    ctx.fillText(String(idx),60,H-100);
-    ctx.fillStyle=theme.accent;ctx.fillRect(80,180,50,6);
-    ctx.font='bold 30px monospace';ctx.textAlign='left';
-    ctx.fillText((slide.kicker||'').toUpperCase(),150,192);
-    ctx.fillStyle='#ffffff';ctx.font='700 72px "Playfair Display", serif';
-    wrapText(ctx,slide.text||'',80,360,W-160,84,7);
-    ctx.fillStyle=theme.muted+'aa';ctx.font='22px monospace';
-    ctx.fillText('VIRAL THREAD FINDER',80,H-70);
-    ctx.fillStyle=theme.accent;ctx.font='bold 24px monospace';ctx.textAlign='right';
-    ctx.fillText(idx+' / '+total,W-80,H-70);
-  }
+  if (/calcio|sport|juve|inter|milan|serie a|football|nba|basket|tennis|f1|formula|atleti/.test(text)) return {label:'SPORT',accent:'verde acceso (#22C55E) su sfondo verde scuro/nero',mood:'energico, dinamico'};
+  if (/crypto|bitcoin|btc|ethereum|web3|nft|finanza|borsa|mercato|trading/.test(text)) return {label:'CRYPTO/FINANZA',accent:'oro/ambra (#F59E0B) su sfondo scuro caldo',mood:'premium, autorevole'};
+  if (/ai|intelligenza artificiale|chatgpt|openai|llm|tech|tecnologia|apple|google|microsoft|software/.test(text)) return {label:'TECH',accent:'indaco/blu elettrico (#6366F1) su sfondo blu notte',mood:'futuristico, pulito'};
+  if (/polit|governo|elezioni|legge|parlamento|meloni|salvini/.test(text)) return {label:'POLITICA',accent:'rosso (#EF4444) su sfondo scuro',mood:'serio, incisivo'};
+  if (/netflix|film|serie|cinema|musica|gaming|ps5|xbox|anime|giochi|videogioco/.test(text)) return {label:'ENTERTAINMENT',accent:'viola (#A855F7) su sfondo scuro',mood:'vivace, pop'};
+  return {label:'VIRALE',accent:'verde acqua (#00E5A0) su sfondo nero-bluastro',mood:'moderno, editoriale'};
 }
 
 function makeCarousel() {
@@ -437,68 +340,73 @@ function makeCarousel() {
       document.getElementById('carousel-content').innerHTML='<div class="carousel-generating">Copy non generato, riprova.</div>';
       return;
     }
-    renderCarousel(parsed.slides);
+    showCanvaPrompt(parsed.slides);
   })
   .catch(function(err){
     document.getElementById('carousel-content').innerHTML='<div class="carousel-generating">Errore di rete: '+err.message+'</div>';
   });
 }
 
-function renderCarousel(copySlides) {
+function buildCanvaPrompt(slides) {
   var theme = getTheme(currentThread);
-  var slides = [];
-  for (var i=0;i<copySlides.length;i++){
-    var c = copySlides[i];
-    var layout = (i===0)?'cover':(i===copySlides.length-1)?'cta':'body';
-    slides.push({layout:layout,kicker:c.kicker,text:c.text,sub:c.sub||''});
-  }
-  window.lastCopySlides = copySlides;
-  document.getElementById('carousel-content').innerHTML='<div class="carousel-generating"><div class="spinner"></div>Disegno le slide...</div>';
-
-  loadBgImage(theme).then(function(bgImg){
-    var html='<button class="dl-all" onclick="downloadCSV()">Scarica CSV per Canva Bulk Create</button>';
-    html+='<div class="carousel-hint">Anteprima delle slide. Usa il CSV per generarle in Canva.</div>';
-    for(var i=0;i<slides.length;i++){
-      html+='<div class="slide-wrap"><canvas class="slide-canvas" id="sl-'+i+'"></canvas></div>';
-    }
-    document.getElementById('carousel-content').innerHTML=html;
-    var total = slides.length;
-    for(var j=0;j<slides.length;j++){
-      (function(idx,s){
-        setTimeout(function(){
-          var c=document.getElementById('sl-'+idx);
-          drawEditorial(c,s,theme,bgImg,idx+1,total);
-        },idx*200);
-      })(j,slides[j]);
-    }
-  });
-}
-
-function downloadCSV() {
-  var slides = window.lastCopySlides || [];
-  if (!slides.length) return;
-  function esc(v){ v = String(v==null?'':v).replace(/"/g,'""'); return '"'+v+'"'; }
-  var rows = [['numero','kicker','testo','sottotitolo','fonte'].map(esc).join(',')];
+  var p = 'Crea un carosello Instagram di '+slides.length+' slide in formato verticale, stile EDITORIALE moderno (tipo rivista NYT/Vox).\n\n';
+  p += 'STILE GRAFICO:\n';
+  p += '- Tema: '+theme.label+', '+theme.mood+'\n';
+  p += '- Colori: '+theme.accent+'\n';
+  p += '- Titoli con font serif elegante e grande (tipo Playfair Display), testo bianco\n';
+  p += '- Etichette/kicker con font monospace maiuscolo nel colore accento\n';
+  p += '- Layout pulito, molto spazio, una sola idea forte per slide\n';
+  p += '- Numero grande semitrasparente sullo sfondo come elemento decorativo\n\n';
+  p += 'CONTENUTO DELLE SLIDE:\n';
   for (var i=0;i<slides.length;i++){
     var s = slides[i];
-    rows.push([
-      esc(i+1),
-      esc(s.kicker||''),
-      esc(s.text||''),
-      esc(s.sub||''),
-      esc((currentThread&&currentThread.source)||'')
-    ].join(','));
+    p += '\nSlide '+(i+1);
+    if (i===0) p += ' (COPERTINA - hook forte, deve fermare lo scroll)';
+    else if (i===slides.length-1) p += ' (FINALE - invito a commentare e seguire)';
+    p += ':\n';
+    if (s.kicker) p += '  Etichetta: '+s.kicker+'\n';
+    p += '  Testo: '+s.text+'\n';
+    if (s.sub) p += '  Sottotitolo: '+s.sub+'\n';
   }
-  var csv = rows.join('\n');
-  var blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'carosello-canva.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function(){URL.revokeObjectURL(url);}, 1000);
+  p += '\nMantieni coerenza grafica tra tutte le slide. Tutto il testo in italiano.';
+  return p;
+}
+
+function showCanvaPrompt(slides) {
+  window.lastSlides = slides;
+  var prompt = buildCanvaPrompt(slides);
+  window.lastPrompt = prompt;
+  var html = '<button class="dl-all" onclick="copyPrompt()">Copia prompt per Canva AI</button>';
+  html += '<div class="carousel-hint">Incolla questo prompt in Canva (Magic Design) e adatta il risultato come vuoi.</div>';
+  html += '<pre class="prompt-box" id="prompt-box"></pre>';
+  document.getElementById('carousel-content').innerHTML = html;
+  document.getElementById('prompt-box').textContent = prompt;
+}
+
+function copyPrompt() {
+  var text = window.lastPrompt || '';
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){ flashCopied(); }, function(){ fallbackCopy(text); });
+  } else { fallbackCopy(text); }
+}
+
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); flashCopied(); } catch(e){}
+  document.body.removeChild(ta);
+}
+
+function flashCopied() {
+  var btn = document.querySelector('.dl-all');
+  if (!btn) return;
+  var old = btn.textContent;
+  btn.textContent = 'Copiato! Incollalo in Canva';
+  setTimeout(function(){ btn.textContent = old; }, 2000);
 }
 
 function closeCarousel(){document.getElementById('carousel-modal').classList.remove('visible');}
