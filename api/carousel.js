@@ -26,7 +26,7 @@ STRUTTURA DELLE SLIDE (6 slide totali):
 - Slide 2 (CONTESTO): qui DESCRIVI la notizia in modo piu disteso, 2-3 frasi, spiegando di cosa si tratta e perche e rilevante. Questa slide e piu ricca di testo delle altre.
 - Slide 3, 4 (SVILUPPO): UNA frase breve e di impatto per slide, che rivela i dettagli un pezzo alla volta e costruisce tensione.
 - Slide 5 (PUNTO CHIAVE): la rivelazione o il dato piu interessante.
-- Slide 6 (FINALE): conclusione + invito a commentare e seguire.
+- Slide 6 (FINALE): un invito breve del tipo "Commenta dicendoci la tua". Niente nomi di account o firme.
 
 REGOLE:
 - SCRIVI TUTTO IN ITALIANO. Se la fonte e in inglese, traduci e adatta.
