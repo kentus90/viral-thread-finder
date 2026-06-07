@@ -21,21 +21,21 @@ Fonte: ${thread.source || ''}
 Riassunto: ${thread.summary || ''}
 Data: ${thread.date || ''}
 
-STRUTTURA DELLE SLIDE (6 slide totali):
-- Slide 1 (COVER): un HOOK forte e breve che crea curiosita SENZA spiegare tutto (max 6 parole) + un sottotitolo che incuriosisce.
-- Slide 2 (CONTESTO): qui DESCRIVI la notizia in modo piu disteso, 2-3 frasi, spiegando di cosa si tratta e perche e rilevante. Questa slide e piu ricca di testo delle altre.
-- Slide 3, 4 (SVILUPPO): UNA frase breve e di impatto per slide, che rivela i dettagli un pezzo alla volta e costruisce tensione.
-- Slide 5 (PUNTO CHIAVE): la rivelazione o il dato piu interessante.
-- Slide 6 (FINALE): un invito breve del tipo "Commenta dicendoci la tua". Niente nomi di account o firme.
+STRUTTURA DELLE SLIDE (esattamente 4 slide):
+- Slide 1 (COVER): un HOOK forte e breve che crea curiosita SENZA spiegare tutto (max 7 parole) + un sottotitolo di una riga che incuriosisce.
+- Slide 2 (CONTESTO): descrivi la notizia in modo completo, 3-4 frasi, spiegando cosa succede, chi e coinvolto e perche e rilevante. Testo ricco e informativo.
+- Slide 3 (APPROFONDIMENTO): 2-3 frasi con i dettagli piu interessanti, i numeri, le conseguenze o i retroscena. Dai sostanza, non frasi vuote.
+- Slide 4 (FINALE): una breve conclusione che riassume il punto chiave in 1-2 frasi, seguita dall'invito "Commenta dicendoci la tua". Niente nomi di account o firme.
 
 REGOLE:
 - SCRIVI TUTTO IN ITALIANO. Se la fonte e in inglese, traduci e adatta.
 - Basati SOLO sui fatti reali del thread. Non inventare dettagli falsi.
-- Tono coinvolgente, ritmo da social. Niente banalita tipo "scopri di piu".
-- Ogni slide ha: "kicker" (etichetta breve maiuscola in italiano, es "ESCLUSIVA", "IL CONTESTO", "IL FATTO", "PERCHE CONTA") e "text" (il contenuto). Solo la slide 1 ha anche "sub" (sottotitolo).
+- Ogni slide (tranne cover e finale) deve avere CONTENUTO SOSTANZIOSO, non frasi di una riga.
+- Tono coinvolgente, ritmo da social ma informativo. Niente banalita tipo "scopri di piu".
+- Ogni slide ha: "kicker" (etichetta breve maiuscola in italiano, es "ESCLUSIVA", "IL CONTESTO", "I DETTAGLI", "IN SINTESI") e "text" (il contenuto). Solo la slide 1 ha anche "sub" (sottotitolo).
 
 Formato JSON:
-{"slides":[{"kicker":"ESCLUSIVA","text":"frase hook breve","sub":"sottotitolo curiosita"},{"kicker":"IL CONTESTO","text":"descrizione di 2-3 frasi della notizia","sub":""}]}
+{"slides":[{"kicker":"ESCLUSIVA","text":"frase hook breve","sub":"sottotitolo curiosita"},{"kicker":"IL CONTESTO","text":"descrizione completa di 3-4 frasi","sub":""}]}
 
 Genera ora, tutto in italiano.`;
 
