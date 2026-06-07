@@ -42,7 +42,9 @@ ALTRE REGOLE:
 - Non scrivere MAI testo di rifiuto: rispondi sempre e solo con il JSON.
 
 Formato JSON:
-{"threads":[{"title":"titolo reale","source":"reddit","url":"URL reale","summary":"di cosa parla","upvotes":null,"comments":null,"views":null,"date":"data precisa","viral_score":7}]}
+{"threads":[{"title":"titolo reale","source":"news","url":"URL reale","summary":"di cosa parla","upvotes":null,"comments":null,"views":null,"date":"data precisa","viral_score":7}]}
+
+IMPORTANTE sul campo "source": usa SOLO uno di questi valori esatti: "reddit", "twitter", "telegram", "youtube", "news", "web". NON scrivere mai il nome del sito (es. non "tuttomercatoweb.com" ma "news"). Per articoli di giornale o testate usa sempre "news", per forum o siti generici usa "web".
 
 Ordina per viral_score decrescente.`;
 
