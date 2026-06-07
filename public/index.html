@@ -239,11 +239,13 @@ function openLink() {
 
 function renderThreads(threads, topic) {
   var section = document.getElementById('results');
+  var KNOWN = ['reddit','twitter','telegram','web','news','youtube','x','forum'];
   var filtered = threads.filter(function(t) {
     var s = (t.source||'').toLowerCase();
     if (!activeFilters.length) return true;
     if (s==='x') return activeFilters.indexOf('twitter')>-1;
-    if (s==='forum') return activeFilters.indexOf('web')>-1;
+    if (s==='forum'||s==='web') return activeFilters.indexOf('web')>-1;
+    if (KNOWN.indexOf(s)===-1) return activeFilters.indexOf('news')>-1 || activeFilters.indexOf('web')>-1;
     return activeFilters.indexOf(s)>-1;
   });
   allThreads = filtered;
